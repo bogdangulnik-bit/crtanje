@@ -1,41 +1,37 @@
 <!DOCTYPE html>
-<html lang="hr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Crtanje</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{overflow:hidden;font-family:Arial;background:#fff;touch-action:none}
-#top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#222;color:#fff;font-weight:bold;font-size:18px}
-#top button{background:#FFD700;border:none;padding:7px 12px;border-radius:10px;font-weight:bold;font-size:14px}
-#canvas{position:absolute;top:46px;left:0;right:0;bottom:150px;background:#fff;touch-action:none}
-#menu{position:absolute;bottom:0;left:0;right:0;background:#f0f0f0;padding:8px;border-top:2px solid #ddd}
-#tools{display:flex;gap:6px;justify-content:center;margin-bottom:8px;flex-wrap:wrap}
-.tool{padding:8px 12px;border-radius:20px;border:2px solid #ccc;background:#fff;font-size:15px}
+<html lang="hr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Crtanje</title><link rel="manifest" href="manifest.json">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{overflow:hidden;font-family:Arial;background:#fff;touch-action:none}
+#top{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#222;color:#fff;font-weight:bold;font-size:16px;height:42px}
+#top button{background:#FFD700;border:none;padding:6px 10px;border-radius:10px;font-weight:bold;font-size:13px}
+#canvas{position:absolute;top:42px;left:0;right:0;bottom:96px;background:#fff;touch-action:none;display:block;width:100%}
+#menu{position:absolute;bottom:0;left:0;right:0;background:#f0f0f0;padding:4px 6px;border-top:2px solid #ddd;height:96px}
+.row{display:flex;gap:5px;justify-content:flex-start;align-items:center;overflow-x:auto;white-space:nowrap;padding:3px 0;scrollbar-width:none}
+.row::-webkit-scrollbar{display:none}
+.tool{padding:5px 10px;border-radius:20px;border:2px solid #ccc;background:#fff;font-size:13px;flex-shrink:0}
 .tool.active{background:#222;color:#fff;border-color:#222}
-#colors{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
-.color{width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #ccc}
+.color{width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px #ccc;flex-shrink:0}
 .color.active{box-shadow:0 0 0 3px #222;transform:scale(1.15)}
-#sizes{display:flex;gap:8px;justify-content:center;align-items:center}
-#sizes button{padding:6px 12px;border-radius:15px;border:2px solid #ccc;background:#fff}
-#sizes button.active{background:#222;color:#fff}
-</style>
-</head>
+.sz{padding:4px 10px;border-radius:15px;border:2px solid #ccc;background:#fff;font-size:12px;flex-shrink:0}
+.sz.active{background:#222;color:#fff}
+</style></head>
 <body>
 <div id="top"><span>🎨 CRTANJE</span><div><button onclick="clearAll()">🧹 OBRIŠI</button> <button onclick="saveImg()">💾 SPREMI</button></div></div>
 <canvas id="canvas"></canvas>
 <div id="menu">
-<div id="tools">
+<div class="row">
 <button class="tool active" data-tool="pencil">✏️ Olovka</button>
 <button class="tool" data-tool="marker">🖊️ Marker</button>
 <button class="tool" data-tool="brush">🖌️ Kist</button>
 <button class="tool" data-tool="spray">💨 Sprej</button>
 <button class="tool" data-tool="eraser">🧽 Gumica</button>
+<span style="font-size:12px;margin-left:6px">Veličina:</span>
+<button class="sz" data-size="3">Mala</button>
+<button class="sz active" data-size="8">Srednja</button>
+<button class="sz" data-size="18">Velika</button>
 </div>
-<div id="colors">
+<div class="row">
 <div class="color active" data-color="#000000" style="background:#000"></div>
 <div class="color" data-color="#FF0000" style="background:#FF0000"></div>
 <div class="color" data-color="#FF8C00" style="background:#FF8C00"></div>
@@ -47,42 +43,31 @@ body{overflow:hidden;font-family:Arial;background:#fff;touch-action:none}
 <div class="color" data-color="#FFFFFF" style="background:#fff;border:1px solid #999"></div>
 <div class="color" data-color="#8D6E63" style="background:#8D6E63"></div>
 </div>
-<div id="sizes">
-<span>Veličina:</span>
-<button data-size="3">Mala</button>
-<button data-size="8" class="active">Srednja</button>
-<button data-size="18">Velika</button>
-</div>
 </div>
 <script>
 const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
 let tool='pencil',color='#000000',size=8,drawing=false,lastX=0,lastY=0;
-function resize(){let r=canvas.getBoundingClientRect();let old=ctx.getImageData(0,0,canvas.width,canvas.height);canvas.width=r.width;canvas.height=r.height;ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);try{ctx.putImageData(old,0,0);}catch(e){}}
-window.addEventListener('resize',resize);resize();
+function resize(){canvas.width=canvas.clientWidth;canvas.height=canvas.clientHeight;ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);}
+window.addEventListener('resize',()=>{setTimeout(resize,100);});
+resize();
 function pos(e){let r=canvas.getBoundingClientRect();let t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};}
 function start(e){e.preventDefault();drawing=true;let p=pos(e);lastX=p.x;lastY=p.y;draw(p.x,p.y);}
 function move(e){if(!drawing)return;e.preventDefault();let p=pos(e);draw(p.x,p.y);lastX=p.x;lastY=p.y;}
 function end(){drawing=false;}
 function draw(x,y){
- if(tool==='spray'){
-  for(let i=0;i<30;i++){let a=Math.random()*Math.PI*2;let d=Math.random()*size*2;let sx=x+Math.cos(a)*d;let sy=y+Math.sin(a)*d;ctx.fillStyle=color;ctx.beginPath();ctx.arc(sx,sy,1.5,0,Math.PI*2);ctx.fill();}
-  return;
- }
+ if(tool==='spray'){for(let i=0;i<30;i++){let a=Math.random()*Math.PI*2;let d=Math.random()*size*2;ctx.fillStyle=color;ctx.beginPath();ctx.arc(x+Math.cos(a)*d,y+Math.sin(a)*d,1.5,0,Math.PI*2);ctx.fill();}return;}
  ctx.strokeStyle=tool==='eraser'?'#ffffff':color;
  ctx.lineWidth=tool==='eraser'?size*2:tool==='marker'?size*2:tool==='brush'?size*1.5:size;
- ctx.lineCap='round';ctx.lineJoin='round';
- if(tool==='brush'){ctx.globalAlpha=0.6;}else{ctx.globalAlpha=1;}
+ ctx.lineCap='round';ctx.lineJoin='round';ctx.globalAlpha=tool==='brush'?0.6:1;
  ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();ctx.globalAlpha=1;
 }
 canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);canvas.addEventListener('mouseup',end);canvas.addEventListener('mouseleave',end);
 canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',end);
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tool').forEach(x=>x.classList.remove('active'));b.classList.add('active');tool=b.dataset.tool;});
 document.querySelectorAll('.color').forEach(c=>c.onclick=()=>{document.querySelectorAll('.color').forEach(x=>x.classList.remove('active'));c.classList.add('active');color=c.dataset.color;if(tool==='eraser'){document.querySelector('[data-tool="pencil"]').click();}});
-document.querySelectorAll('#sizes button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#sizes button').forEach(x=>x.classList.remove('active'));b.classList.add('active');size=parseInt(b.dataset.size);});
+document.querySelectorAll('.sz').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sz').forEach(x=>x.classList.remove('active'));b.classList.add('active');size=parseInt(b.dataset.size);});
 function clearAll(){ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);}
 function saveImg(){let a=document.createElement('a');a.download='moj-crtez.png';a.href=canvas.toDataURL('image/png');a.click();alert('Crtež spremljen! 🎨');}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
-</script>
-</body>
-</html>
+</script></body></html>
